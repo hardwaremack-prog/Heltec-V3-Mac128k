@@ -3,7 +3,8 @@
 # partition table + app, for writing at 0x0):
 #   firmware/Heltec-V3-Mac128k.bin  Heltec WiFi LoRa 32 V3 (Mac 128K / Plus)
 #   firmware/Heltec-V4-Mac-SE.bin   Heltec WiFi LoRa 32 V4 (Mac SE, uses the PSRAM)
-# Usage: tools/build_firmware.sh [v3|v4]     (default: both)
+#   firmware/ESP32-Mac128k.bin      plain ESP32 dev board, 4 MB flash (Mac 128K / Plus)
+# Usage: tools/build_firmware.sh [v3|v4|esp32]     (default: all three)
 #   ARDUINO_CLI=/path/to/arduino-cli  ARDUINO_CONFIG=/path/to/arduino-cli.yaml  to override
 set -e
 here=$(cd "$(dirname "$0")/.." && pwd)
@@ -18,7 +19,8 @@ import sys
 merged, app, out = sys.argv[1:]
 m = open(merged, 'rb').read(); a = open(app, 'rb').read()
 n = (0x10000 + len(a) + 4095) & ~4095
-assert m[0] == 0xE9 and m[0x8000:0x8002] == b'\xaa\x50' and m[0x10000:0x10000 + len(a)] == a
+# the ESP32-S3's bootloader sits at 0x0, a plain ESP32's at 0x1000 (0x0-0xFFF stays blank)
+assert (m[0] == 0xE9 or (m[0] == 0xFF and m[0x1000] == 0xE9)) and m[0x8000:0x8002] == b'\xaa\x50' and m[0x10000:0x10000 + len(a)] == a
 open(out, 'wb').write(m[:n]); print(out, n, 'bytes')
 PY
 }
@@ -41,8 +43,21 @@ build_v4() {
   rm -rf "$tmp"
 }
 
-case "${1:-both}" in
+build_esp32() {
+  # same sketch, with the 4 MB partition table; RAM in two 64 KB banks (heltec_config.h)
+  tmp=$(mktemp -d); cp -r "$here/Heltec-Mac" "$tmp/Heltec-Mac"; rm -rf "$tmp/Heltec-Mac/build"
+  cp "$here/Heltec-Mac/partitions-esp32.csv" "$tmp/Heltec-Mac/partitions.csv"
+  out=$(mktemp -d)
+  $CLI $CFG compile --fqbn esp32:esp32:esp32 $EXTRA \
+      --build-property upload.maximum_size=1703936 \
+      --output-dir "$out" "$tmp/Heltec-Mac"
+  image "$out/Heltec-Mac.ino.merged.bin" "$out/Heltec-Mac.ino.bin" "$here/firmware/ESP32-Mac128k.bin"
+  rm -rf "$tmp"
+}
+
+case "${1:-all}" in
   v3) build_v3 ;;
   v4) build_v4 ;;
-  *) build_v3; build_v4 ;;
+  esp32) build_esp32 ;;
+  *) build_v3; build_v4; build_esp32 ;;
 esac

@@ -42,6 +42,28 @@ What's different on the V4:
 
 ![Printed from TeachText on the Mac SE](docs/se-printout.png)
 
+## Also on a plain ESP32: ESP32 Mac 128K
+
+The same 128K Mac runs on a **plain ESP32 dev board** (NodeMCU-32S, ESP32-DevKitC or any
+ESP32-WROOM board with 4 MB of flash). No Heltec needed. Flash
+[`flasher/ESP32-Mac128k-Flasher.html`](flasher/ESP32-Mac128k-Flasher.html) (or open the
+[browser flasher](https://hardwaremack-prog.github.io/Heltec-V3-Mac128k/) and pick ESP32), join
+**ESP32-Mac-Setup** (password **heltecmac**), open **http://192.168.4.1**, and carry on as
+below.
+
+What's different:
+
+- **Its memory comes in pieces.** A plain ESP32 has as much RAM as the V3, but never 128 KB in
+  one piece, so the Mac's 128 KB is set aside in four 32 KB parts the moment the board starts,
+  and the emulator joins them back together. It's always a 128K Mac.
+- **About 2 MB of disks** (five 400K disks), since the board has 4 MB of flash.
+- **No screen or battery** on the board itself. The blue LED blinks while a browser is
+  watching. An SSD1306 128×64 OLED on GPIO 21 (SDA) / 22 (SCL) is used if you add one.
+- **BOOT** does what PRG does on a Heltec (hold 2 s to restart the Mac; it also wakes the board
+  from Sleep), and **EN** is its reset button.
+- Windows needs the USB driver for the chip next to the USB socket: CP210x or CH340.
+- It answers to **esp32-mac.local** on your network.
+
 ## Highlights
 
 - **Plays in any modern browser (HTML5).** The screen streams over a WebSocket into a canvas,
@@ -93,8 +115,9 @@ ready to copy onto the disk in use.*
 
 ## What you need
 
-- A **Heltec WiFi LoRa 32 V3** (ESP32-S3, 8 MB flash) for Heltec V3 Mac 128K, or a **Heltec WiFi LoRa 32
-  V4** (2 MB PSRAM, 16 MB flash) for Heltec V4 Mac SE, and a USB-C cable that carries data
+- A **Heltec WiFi LoRa 32 V3** (ESP32-S3, 8 MB flash) for Heltec V3 Mac 128K, a **Heltec WiFi LoRa 32
+  V4** (2 MB PSRAM, 16 MB flash) for Heltec V4 Mac SE, or a **plain ESP32 dev board** (4 MB
+  flash) for ESP32 Mac 128K, and a USB cable that carries data
 - **Chrome or Edge** on a computer, for flashing
 - Your own **Mac ROM** and **disk images**. Apple's software isn't included.
 
@@ -106,7 +129,8 @@ ready to copy onto the disk in use.*
 ### 1. Flash the board
 
 Download [`flasher/Heltec-V3-Mac128k-Flasher.html`](flasher/Heltec-V3-Mac128k-Flasher.html) (V3) or
-[`flasher/Heltec-V4-Mac-SE-Flasher.html`](flasher/Heltec-V4-Mac-SE-Flasher.html) (V4) and open it in
+[`flasher/Heltec-V4-Mac-SE-Flasher.html`](flasher/Heltec-V4-Mac-SE-Flasher.html) (V4) or
+[`flasher/ESP32-Mac128k-Flasher.html`](flasher/ESP32-Mac128k-Flasher.html) (plain ESP32) and open it in
 Chrome or Edge. The firmware is built into the page. Plug in the board, click **Connect**, pick
 it from the list, and click **Flash**. The page checks the write and restarts the board. If
 anything goes wrong, the page walks you through the usual fixes (USB driver, cable, download
@@ -115,7 +139,8 @@ mode), and **Watch the board start** shows the board's own startup log.
 ![The Heltec V3 Mac 128K Flasher, with the backup and clone section](docs/flasher.png)
 
 Prefer the command line? `esptool --chip esp32s3 write-flash 0x0 firmware/Heltec-V3-Mac128k.bin` (V3) or
-`firmware/Heltec-V4-Mac-SE.bin` (V4). The V4 uses the ESP32-S3's own USB, so it needs no driver.
+`firmware/Heltec-V4-Mac-SE.bin` (V4), or `esptool --chip esp32 write-flash 0x0 firmware/ESP32-Mac128k.bin`
+(plain ESP32). The V4 uses the ESP32-S3's own USB, so it needs no driver.
 
 Updating later keeps your ROM, disks and Wi‑Fi settings.
 
@@ -299,6 +324,8 @@ The ESP32-S3 has two processor cores and 512 KB of RAM:
   copies programs onto 400K MFS disks for now, not HFS ones.
 - ImageWriter 2.x (System 4 and later) waits a few seconds before printing, because it asks for
   an ImageWriter II's ID first and the virtual printer doesn't answer.
+- A plain ESP32's processor core is a little slower than the Heltecs' ESP32-S3, so the Mac may
+  run a bit below real speed there; **Turbo** lets it go flat out.
 - One floppy drive. To switch disks, pick another one in the library, and the Mac restarts.
 - No modem port, AppleTalk or SCSI. The printer port only talks to the built-in PDF printer.
 - The emulation isn't cycle-exact, so a few timing-sensitive programs may run or sound slightly
@@ -336,8 +363,12 @@ Arduino IDE (or arduino-cli) with the **esp32** core 3.x. Open
 - **V4:** board **Heltec WiFi LoRa 32(V4)** with **PSRAM: QSPI PSRAM**, **Flash Size: 16MB**
   and **USB CDC On Boot: Enabled**, and copy `partitions-v4.csv` over `partitions.csv`. The
   board setting turns on the V4 build (`heltec_config.h`).
+- **Plain ESP32:** board **ESP32 Dev Module** (4 MB flash), and copy `partitions-esp32.csv` over
+  `partitions.csv`. The board setting turns on the ESP32 build, which keeps the Mac's RAM in
+  four 32 KB banks (`UMAC_RAM_SPLIT` in `src/core/machw.h`). Its app is bigger than the default
+  1.3 MB limit, so with arduino-cli add `--build-property upload.maximum_size=1703936`.
 
-`tools/build_firmware.sh` does both with arduino-cli and writes the images in `firmware/`.
+`tools/build_firmware.sh` does all three with arduino-cli and writes the images in `firmware/`.
 
 | Folder | What's in it |
 |---|---|
@@ -346,7 +377,7 @@ Arduino IDE (or arduino-cli) with the **esp32** core 3.x. Open
 | `web/` | The browser-side unpackers (`macfiles.js`, `sit-arsenic.js`), the virtual ImageWriter (`imagewriter.js`) and a WebAssembly build |
 | `flasher/` | The one-page flasher and the script that builds it from the firmware |
 | `host/` | A PC build of the same emulator and web page, plus tests |
-| `firmware/` | The ready-to-flash firmware images (V3 and V4) |
+| `firmware/` | The ready-to-flash firmware images (V3, V4 and plain ESP32) |
 
 The PC build runs the same code on a desktop for testing:
 
@@ -354,6 +385,7 @@ The PC build runs the same code on a desktop for testing:
 cd host && ./build.sh
 ./machost --rom mac128k.rom --disk system.img   # web page at http://localhost:8080, VNC on 5900
 V4=1 ./build.sh && ./machost-v4 --ram 1024 --rom macse.rom --disk system6.img   # the V4 / Mac SE build
+ESP32=1 ./build.sh && ./machost-esp32 --rom mac128k.rom --disk system.img       # the plain ESP32 build (RAM in banks)
 ./machost --testrom                             # built-in test pattern, no ROM needed
 ```
 
