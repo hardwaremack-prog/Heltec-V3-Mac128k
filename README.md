@@ -66,6 +66,8 @@ What's different:
   from Sleep), and **EN** is its reset button.
 - Windows needs the USB driver for the chip next to the USB socket: CP210x or CH340.
 - It answers to **esp32-mac.local** on your network.
+- **No VNC**: the memory it would need is what keeps Wi-Fi and the web page steady. Use the
+  browser.
 
 ## Highlights
 
