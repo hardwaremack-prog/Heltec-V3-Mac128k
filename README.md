@@ -57,8 +57,11 @@ What's different:
   one piece, so the Mac's 128 KB is set aside in four 32 KB parts the moment the board starts,
   and the emulator joins them back together. It's always a 128K Mac.
 - **About 2 MB of disks** (five 400K disks), since the board has 4 MB of flash.
-- **No screen or battery** on the board itself. The blue LED blinks while a browser is
-  watching. An SSD1306 128×64 OLED on GPIO 21 (SDA) / 22 (SCL) is used if you add one.
+- **No screen or battery** on the board itself. An SSD1306 128×64 OLED on GPIO 21 (SDA) /
+  22 (SCL) is used if you add one.
+- **The blue LED (GPIO 2) is a status light**, as in The Shelf for this board: a slow blink while
+  it starts, slow "breathing" once it's running, a quick flicker while the Mac uses its disk,
+  and a fast flash while a ROM or disk is being uploaded. The red LED is just the power light.
 - **BOOT** does what PRG does on a Heltec (hold 2 s to restart the Mac; it also wakes the board
   from Sleep), and **EN** is its reset button.
 - Windows needs the USB driver for the chip next to the USB socket: CP210x or CH340.
