@@ -66,7 +66,8 @@ What's different:
 - **BOOT** does what PRG does on a Heltec (hold 2 s to restart the Mac; it also wakes the board
   from Sleep), and **EN** is its reset button.
 - Windows needs the USB driver for the chip next to the USB socket: CP210x or CH340.
-- It answers to **esp32-mac.local** on your network.
+- On your home Wi‑Fi it answers to **http://mac128k.local**, and on Windows also to
+  **http://mac128k/**, so you don't need to find its address.
 - **No VNC**: the memory it would need is what keeps Wi-Fi and the web page steady. Use the
   browser.
 
@@ -161,7 +162,7 @@ The file holds your Wi‑Fi password and your ROM, so keep it private.
 The first time, the board makes its own hotspot: **Heltec-V3-Mac-Setup**, password **heltecmac**.
 Join it, open **http://192.168.4.1**, pick your network under **Wi‑Fi**, and click
 **Save & restart**. The OLED then shows the board's address on your network. It also answers
-to **heltec-mac.local** on most computers.
+to **heltec-mac.local** on most computers, and on Windows also to **http://heltec-mac/**.
 
 No Wi‑Fi around? You can also use the Mac straight from the hotspot: join
 **Heltec-V3-Mac-Setup** and type **http://192.168.4.1** into your browser (the `.local` name
