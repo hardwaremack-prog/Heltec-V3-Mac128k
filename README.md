@@ -48,7 +48,9 @@ The same 128K Mac runs on a **plain ESP32 dev board** (NodeMCU-32S, ESP32-DevKit
 ESP32-WROOM board with 4 MB of flash). No Heltec needed. Flash
 [`flasher/ESP32-Mac128k-Flasher.html`](flasher/ESP32-Mac128k-Flasher.html) (or open the
 [browser flasher](https://hardwaremack-prog.github.io/Heltec-V3-Mac128k/) and pick ESP32), join
-**Macintosh128k** (password **macintosh128k**), open **http://10.1.1.250**, and carry on as
+**Macintosh128k-XXXX** (password **macintosh128k**; XXXX is the end of the board's MAC address,
+so several boards in one place each have their own name, and the flasher shows the exact name
+after **Connect**), open **http://10.1.1.250**, and carry on as
 below. (Its hotspot uses 10.1.1.250, like The Shelf on this board; phones and PCs get
 10.1.1.100 and up.)
 
